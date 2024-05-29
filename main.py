@@ -13,6 +13,7 @@ API должен содержать следующие конечные точк
 Для каждой конечной точки необходимо проводить валидацию данных запроса и ответа.
 Для этого использовать библиотеку Pydantic.
 """
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from typing import List
 import logging
@@ -78,6 +79,4 @@ async def delete_task(task_id: int):
 
 
 if __name__ == "__main__":
-    import uvicorn
-
     uvicorn.run('main:app', host='localhost', port=8000, reload=True)
