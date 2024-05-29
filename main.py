@@ -17,12 +17,14 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from typing import List
 import logging
-from task_model import Task, tasks
+from task_model import Task
 
 app = FastAPI()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+tasks = []
 
 
 # GET /tasks — возвращает список всех задач (т. е. задекорировал маршрут
@@ -34,7 +36,7 @@ async def get_tasks():
 
 # GET /tasks/{id} - возвращает конкретную задачу по ее id, если она не найдена
 # выдает ошибку, что Задача не найдена
-@app.get("/tasks/{id}", response_model=Task)
+@app.get("/tasks/{task_id}", response_model=Task)
 async def get_task(task_id: int):
     logger.info('Отработал GET_ID запрос.')
     for i in tasks:
@@ -43,7 +45,7 @@ async def get_task(task_id: int):
     raise HTTPException(status_code=404, detail="Задача не найдена")
 
 
-# POST /tasks — добавляет новую задачу с проверкой по id
+# POST /tasks/ — добавляет новую задачу с проверкой по id
 @app.post('/tasks', response_model=Task)
 async def create_task(task: Task):
     logger.info('Отработал POST запрос.')
@@ -56,7 +58,7 @@ async def create_task(task: Task):
 
 
 # PUT /tasks/{id} — обновляет задачу с указанным идентификатором.
-@app.put("/tasks/{id}", response_model=Task)
+@app.put("/tasks/{task_id}", response_model=Task)
 async def update_task(task_id: int, updated_task: Task):
     for i, task in enumerate(tasks):
         if task.id == task_id:
@@ -68,7 +70,7 @@ async def update_task(task_id: int, updated_task: Task):
 
 
 # DELETE /tasks/{id} — удаляет задачу с указанным идентификатором.
-@app.delete("/tasks/{id}", response_model=Task)
+@app.delete("/tasks/{task_id}", response_model=Task)
 async def delete_task(task_id: int):
     for i, task in enumerate(tasks):
         if task.id == task_id:
