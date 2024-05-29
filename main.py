@@ -1,15 +1,17 @@
 """
-Задание №1
-Создать, API для управления списком задач. Приложение должно иметь
-возможность создавать, обновлять, удалять и получать список задач.
-Создайте модуль приложения и настройте сервер и маршрутизацию.
-Создайте класс Task с полями id, title, description и status.
-Создайте список tasks для хранения задач.
-Создайте маршрут для получения списка задач (метод GET).
-Создайте маршрут для создания новой задачи (метод POST).
-Создайте маршрут для обновления задачи (метод PUT).
-Создайте маршрут для удаления задачи (метод DELETE).
-Реализуйте валидацию данных запроса и ответа
+Необходимо создать API для управления списком задач.
+Каждая задача должна содержать заголовок и описание.
+Для каждой задачи должна быть возможность указать статус (выполнена/не выполнена).
+
+API должен содержать следующие конечные точки:
+— GET /tasks — возвращает список всех задач.
+— GET /tasks/{id} — возвращает задачу с указанным идентификатором.
+— POST /tasks — добавляет новую задачу.
+— PUT /tasks/{id} — обновляет задачу с указанным идентификатором.
+— DELETE /tasks/{id} — удаляет задачу с указанным идентификатором.
+
+Для каждой конечной точки необходимо проводить валидацию данных запроса и ответа.
+Для этого использовать библиотеку Pydantic.
 """
 from fastapi import FastAPI, HTTPException
 from typing import List
@@ -21,44 +23,56 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+# GET /tasks — возвращает список всех задач (т. е. задекорировал маршрут
+# /tasks запросом .get, передав через модель весь список задач)
 @app.get("/tasks", response_model=List[Task])
 async def get_tasks():
     return tasks
 
 
-@app.post("/create_task")
+# GET /tasks/{id} - возвращает конкретную задачу по ее id, если она не найдена
+# выдает ошибку, что Задача не найдена
+@app.get("/tasks/{id}", response_model=Task)
+async def get_task(task_id: int):
+    logger.info('Отработал GET_ID запрос.')
+    for i in tasks:
+        if i.id == task_id:
+            return i
+    raise HTTPException(status_code=404, detail="Задача не найдена")
+
+
+# POST /tasks — добавляет новую задачу с проверкой по id
+@app.post('/tasks', response_model=Task)
 async def create_task(task: Task):
+    logger.info('Отработал POST запрос.')
+    # Проверка на уникальность ID
+    for i in tasks:
+        if i.id == task.id:
+            raise HTTPException(status_code=400, detail="Задача с таким идентификатором уже существует")
     tasks.append(task)
-    return {"message": "Task created successfully"}
+    return task
 
 
-# @app.put("/tasks/{task_id}", response_model=Task)
-# async def update_task(task_id: int, task: Task):
-#     for num in range(len(tasks)):
-#         if tasks[num].id == task_id:
-#             tasks[num] = task
-#             print(f"{tasks[num]} изменен")
-#             return tasks[num]
-#     raise HTTPException(status_code=404, detail='Task not found')
-
-
-@app.put("/update_task/{task_id}", response_model=Task)
+# PUT /tasks/{id} — обновляет задачу с указанным идентификатором.
+@app.put("/tasks/{id}", response_model=Task)
 async def update_task(task_id: int, updated_task: Task):
     for i, task in enumerate(tasks):
         if task.id == task_id:
             tasks[i] = updated_task
-            logger.info(f'Task id={task.id} {task.title} - успешно добавлен')
+            logger.info(f'Task id={task.id} {task.title} - успешно обновлен')
             return {"message": "Task updated successfully"}
 
     raise HTTPException(status_code=404, detail="Task not found")
 
 
-@app.delete("/delete_task/{task_id}", response_model=Task)
+# DELETE /tasks/{id} — удаляет задачу с указанным идентификатором.
+@app.delete("/tasks/{id}", response_model=Task)
 async def delete_task(task_id: int):
     for i, task in enumerate(tasks):
         if task.id == task_id:
             del tasks[i]
-            logger.info(f'Task id={task.id} {task.title} - успешно добавлен')
+            logger.info(f'Task id={task.id} {task.title} - успешно удален')
             return {"message": "Task deleted successfully"}
     raise HTTPException(status_code=404, detail="Task not found")
 
@@ -66,4 +80,4 @@ async def delete_task(task_id: int):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("fastapi_app:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run('main:app', host='localhost', port=8000, reload=True)
