@@ -38,3 +38,5 @@ $headers = @{
 
 Invoke-WebRequest -Uri "http://127.0.0.1:8000/tasks/id" -Method DELETE -Headers $headers
 ```
+#### И дополнительно:
+- Реализовал при запуске приложения создание 2 заданий tasks 1 и 2.
